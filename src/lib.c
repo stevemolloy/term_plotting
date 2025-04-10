@@ -20,11 +20,11 @@ void plot_hist(double *data, size_t num_pts) {
 
     for (int i=VERT_PTS; i>0; i--) {
         if (i==VERT_PTS)
-            printf("%+0.3e ^", lims[i]-step/2.0);
+            printf("%+0.1e ^", lims[i]-step/2.0);
         else if (i==1)
-            printf("%+0.3e -", lims[i]-step/2.0);
+            printf("%+0.1e -", lims[i]-step/2.0);
         else
-            printf("           |");
+            printf("         |");
 
         for (size_t j=0; j<num_pts; j++) {
             if (lims[i] > data[j] && data[j] >= lims[i-1])
