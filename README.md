@@ -1,10 +1,15 @@
-# Quick start
+# Build
 
 ```bash
 $ make
 clang -Wall -Wpedantic -Wextra -std=c11 -ggdb -Wshadow -fsanitize=address  -c src/lib.c -o objs/lib.o
 clang -Wall -Wpedantic -Wextra -std=c11 -ggdb -Wshadow -fsanitize=address  -c src/main.c -o objs/main.o
 clang -Wall -Wpedantic -Wextra -std=c11 -ggdb -Wshadow -fsanitize=address objs/lib.o objs/main.o -o bin/plot_histogram
+```
+
+# Run
+
+```bash
 $ ./bin/plot_histogram
 
 
