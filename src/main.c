@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#define SDM_LIB_IMPLEMENTATION
+#include "sdm_lib.h"
 #include "lib.h"
 
 int main(void) {
