@@ -8,6 +8,7 @@
 #include "lib.h"
 
 #define VERT_PTS 15
+#define HORIZ_PTS 100
 
 int main(void) {
     const char *filename = "./data/brm40_short.csv";
@@ -19,6 +20,7 @@ int main(void) {
     printf("\n\n");
     printf("%s\n\n", filename);
     plot_hist(values.data, values.length, VERT_PTS);
+    plot_hist(values.data, values.length, VERT_PTS, HORIZ_PTS);
     printf("\n\n");
 
     free(dt_strings.data);
