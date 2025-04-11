@@ -17,9 +17,7 @@ int main(void) {
     DoubleArray values = {0};
     char *buffer = parse_arch_file(filename, &dt_strings, &values);
 
-    printf("\n\n");
-    printf("%s\n\n", filename);
-    plot_hist(values.data, values.length, VERT_PTS);
+    printf("\n\n%s\n\n", filename);
     plot_hist(values.data, values.length, VERT_PTS, HORIZ_PTS);
     printf("\n\n");
 
