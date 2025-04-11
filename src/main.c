@@ -1,17 +1,29 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #define SDM_LIB_IMPLEMENTATION
 #include "sdm_lib.h"
+#undef SDM_LIB_IMPLEMENTATION
+#include "arch_tools.h"
 #include "lib.h"
 
+#define VERT_PTS 15
+
 int main(void) {
-    double data[] = 
-        {10, 6, 0, 14, 7, 8, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
-    size_t num_pts = sizeof(data) / sizeof(data[0]);
+    const char *filename = "./data/brm40_short.csv";
+
+    DateTimeStringArray dt_strings = {0};
+    DoubleArray values = {0};
+    char *buffer = parse_arch_file(filename, &dt_strings, &values);
 
     printf("\n\n");
-    plot_hist(data, num_pts);
+    printf("%s\n\n", filename);
+    plot_hist(values.data, values.length, VERT_PTS);
     printf("\n\n");
+
+    free(dt_strings.data);
+    free(values.data);
+    free(buffer);
 
     return 0;
 }

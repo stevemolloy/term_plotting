@@ -3,8 +3,10 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* This library provides the following:
@@ -34,18 +36,15 @@
  * SDM_SV_F "%.*s"                                                             A printf helper.
  * SDM_SV_Vals(S) (int)(S).length, (S).data                                    A printf helper.
  * 
- * # MEMORY ARENA
- * ==============
- * #define SDM_ARENA_DEFAULT_CAP 256 * 1024*1024              Default capacity of the memory arena when not supplied by the user
- * void sdm_arena_init(sdm_arena_t *arena, size_t capacity);  Initialise a memory arena with a certain capacity and malloc the required space.
- * void *sdm_arena_alloc(sdm_arena_t *arena, size_t size);    Allocate a region of size bytes in the given arena, and return a pointer to the start of this region.
- * void sdm_arena_free(sdm_arena_t *arena);                   Deallocate all memory in the arena, and zero everything
  */
 
-#include <stdbool.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
+#ifndef SDM_MALLOC
+#define SDM_MALLOC malloc
+#endif
+
+#ifndef SDM_REALLOC
+#define SDM_REALLOC realloc
+#endif
 
 #define SDM_FREE_AND_NULL(ptr) \
 do {                           \
@@ -54,14 +53,6 @@ do {                           \
 } while (0)
 
 #define SDM_FREE SDM_FREE_AND_NULL
-#ifndef SDM_MALLOC
-void *active_alloc(size_t size);
-void *active_realloc(void *ptr, size_t size);
-#define SDM_MALLOC active_alloc
-#define SDM_REALLOC active_realloc
-#endif
-
-#define hash jenkins_one_at_a_time_hash
 
 #define SDM_ENSURE_ARRAY_CAP(da, cap) do {                     \
     (da).capacity = cap;                                       \
@@ -192,77 +183,6 @@ typedef struct {
     (hm).capacity = 0;   \
     SDM_FREE((hm).data);     \
   } while (0);
-
-#define GET_HASHMAP_INDEX(hm, value_of_key, index_addr)                      \
-  do {                                                                       \
-    *(index_addr) = -1;                                                      \
-    uint32_t location = get_hashmap_location((value_of_key), (hm).capacity); \
-    for (size_t offset=0; offset<(hm).capacity; offset++) {                  \
-      int new_location = (location + offset) % (hm).capacity;                \
-      if ((hm).data[new_location].occupied &&                                \
-        (strcmp((hm).data[new_location].key, (value_of_key))==0)) {          \
-        *(index_addr) = new_location;                                        \
-        break;                                                               \
-      }                                                                      \
-    }                                                                        \
-  } while (0)
-
-#define HM_VAL_AT(hm, index) \
-  (hm).data[index].value
-
-#define PUSH_TO_HASHMAP(hm1, value_of_key, value_of_value)                                   \
-  do {                                                                                       \
-    uint32_t location;                                                                       \
-    if ((hm1)->capacity == 0) {                                                              \
-      SET_HM_CAPACITY((hm1), DEFAULT_HM_CAP);                                                \
-    }                                                                                        \
-    if ((hm1)->length >= (hm1)->capacity) {                                                  \
-      fprintf(stderr, "Hashmap has insufficient capacity.\n");                               \
-      exit(1);                                                                               \
-    }                                                                                        \
-    location = get_hashmap_location((value_of_key), (hm1)->capacity);                        \
-                                                                                             \
-    if (!(hm1)->data[location].occupied ||                                                   \
-      ((hm1)->data[location].occupied && strcmp((value_of_key), (hm1)->data[location].key)==0)) {  \
-      strcpy((hm1)->data[location].key, (value_of_key));                                     \
-      (hm1)->data[location].value = (value_of_value);                                        \
-      (hm1)->data[location].occupied = true;                                                 \
-      (hm1)->length++;                                                                       \
-    } else {                                                                                 \
-      for (size_t i=1; i<(hm1)->capacity; i++) {                                             \
-        size_t new_location = (location + i) % (hm1)->capacity;                              \
-        if (!(hm1)->data[new_location].occupied ||                                           \
-          ((hm1)->data[new_location].occupied && strcmp((value_of_key), (hm1)->data[new_location].key)==0)) { \
-          strcpy((hm1)->data[new_location].key, (value_of_key));                             \
-          (hm1)->data[new_location].value = (value_of_value);                                \
-          (hm1)->data[new_location].occupied = true;                                         \
-          (hm1)->length++;                                                                   \
-          break;                                                                             \
-        }                                                                                    \
-      }                                                                                      \
-    }                                                                                        \
-  } while (0)
-
-void push_to_dblarray(DblArray *hm, char *key, double value);
-uint32_t get_hashmap_location(const char* key, size_t capacity);
-uint32_t jenkins_one_at_a_time_hash(const uint8_t* key, size_t length);
-
-#define SDM_ARENA_DEFAULT_CAP 256 * 1024*1024
-
-typedef struct sdm_arena_t sdm_arena_t;
-
-struct sdm_arena_t {
-  size_t length;
-  size_t capacity;
-  unsigned char *start;
-  size_t alignment;
-  sdm_arena_t *next;
-};
-
-void sdm_arena_init(sdm_arena_t *arena, size_t capacity);
-void *sdm_arena_alloc(sdm_arena_t *arena, size_t size);
-void *sdm_arena_realloc(sdm_arena_t *arena, void *ptr, size_t size);
-void sdm_arena_free(sdm_arena_t *arena);
 
 typedef enum {
   SDM_LOG_ERR,
@@ -406,117 +326,6 @@ char *sdm_shift_args(int *argc, char ***argv) {
   char **ret = *argv;
   (*argv)++;
   return *ret;
-}
-
-uint32_t get_hashmap_location(const char* key, size_t capacity) {
-  uint32_t key_hash = hash((uint8_t*)key, strlen(key));
-  return key_hash % capacity;
-}
-
-void resize_dblarray(DblArray *hm) {
-  DblArray resized_array = {0};
-  SET_HM_CAPACITY((&resized_array), hm->capacity * 2);
-  for (size_t i=0; i<hm->capacity; i++) {
-    if (!hm->data[i].occupied) continue;
-    push_to_dblarray(&resized_array, hm->data[i].key, hm->data[i].value);
-  }
-  hm->capacity = resized_array.capacity;
-  SDM_FREE(hm->data);
-  hm->data = resized_array.data;
-}
-
-void push_to_dblarray(DblArray *hm, char *key, double value) {
-  if (hm->length >= hm->capacity) resize_dblarray(hm);
-  PUSH_TO_HASHMAP(hm, key, value);
-}
-
-// https://en.wikipedia.org/wiki/Jenkins_hash_function
-uint32_t jenkins_one_at_a_time_hash(const uint8_t* key, size_t length) {
-  size_t i = 0;
-  uint32_t hash = 0;
-  while (i != length) {
-    hash += key[i++];
-    hash += hash << 10;
-    hash ^= hash >> 6;
-  }
-  hash += hash << 3;
-  hash ^= hash >> 11;
-  hash += hash << 15;
-  return hash;
-}
-
-#if defined(SDM_MALLOC) && SDM_MALLOC == active_alloc
-static sdm_arena_t main_arena = {0};
-static sdm_arena_t *active_arena = &main_arena;
-void *active_alloc(size_t size)              { return sdm_arena_alloc(active_arena, size); }
-void *active_realloc(void *ptr, size_t size) { return sdm_arena_realloc(active_arena, ptr, size); }
-#endif
-
-void sdm_arena_init(sdm_arena_t *arena, size_t capacity) {
-  arena->start = malloc(capacity);
-  if (arena->start == NULL) {
-    fprintf(stderr, "Memory problem. Aborting.\n");
-    exit(1);
-  }
-  memset(arena->start, 0, capacity);
-  arena->next = malloc(sizeof(*arena->next));
-  if (arena->next == NULL) {
-    fprintf(stderr, "Memory problem. Aborting.\n");
-    exit(1);
-  }
-  memset(arena->next, 0, sizeof(*arena->next));
-  arena->capacity = capacity;
-  arena->length = 0;
-  arena->alignment = sizeof(void*);
-}
-
-void *sdm_arena_alloc(sdm_arena_t *arena, size_t size) {
-  if (arena->start == NULL) {
-    size_t capacity = (arena->capacity > 0) ? arena->capacity : SDM_ARENA_DEFAULT_CAP;
-    while (capacity < size) {
-      capacity *= 2;
-    }
-    sdm_arena_init(arena, capacity);
-  }
-
-  if (arena->capacity - arena->length < size) {
-    if (arena->next->capacity == 0) arena->next->capacity = arena->capacity;
-    return sdm_arena_alloc(arena->next, size);
-  }
-
-  uintptr_t rel_offset = arena->length;
-  size_t a = (uintptr_t)rel_offset % arena->alignment;
-  size_t align_shift = 0;
-  if (a != 0) {
-    align_shift = arena->alignment - a;
-    rel_offset += align_shift;
-  }
-
-  if (size > 0)
-    arena->length += size + align_shift;
-  else
-    arena->length += 1;
-
-  return &arena->start[rel_offset];
-}
-
-void *sdm_arena_realloc(sdm_arena_t *arena, void *ptr, size_t size) {
-  void *retval = sdm_arena_alloc(arena, size);
-  if (ptr) memcpy(retval, ptr, size);
-  return retval;
-}
-
-void sdm_arena_free(sdm_arena_t *arena) {
-  if (arena->next) {
-    sdm_arena_free(arena->next);
-  }
-
-  SDM_FREE_AND_NULL(arena->start);
-
-  arena->length = 0;
-  arena->capacity = 0;
-
-  SDM_FREE_AND_NULL(arena->next);
 }
 
 bool sdm_sv_compare(sdm_string_view SV1, sdm_string_view SV2) {
