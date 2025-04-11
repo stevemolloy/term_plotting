@@ -29,5 +29,5 @@ $(OBJ):
 	@mkdir -p $@
 
 run: $(BIN)
-	$(BIN)
+	$(BIN) ./data/brm40_short.csv
 

@@ -8,10 +8,25 @@
 #include "lib.h"
 
 #define VERT_PTS 15
-#define HORIZ_PTS 100
+#define HORIZ_PTS 200
 
-int main(void) {
-    const char *filename = "./data/brm40_short.csv";
+void usage(const char *programname) {
+    fprintf(stderr, "USAGE:\n%s <filename>\n", programname);
+}
+
+int main(int argc, char *argv[]) {
+    const char *filename;
+    const char *programname = sdm_shift_args(&argc, &argv);
+
+    if (argc == 0) {
+        fprintf(stderr, "ERROR: No filename provided\n");
+        usage(programname);
+        return 1;
+    }
+
+    while (argc > 0) {
+        filename = sdm_shift_args(&argc, &argv);
+    }
 
     DateTimeStringArray dt_strings = {0};
     DoubleArray values = {0};
