@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -Wall -Wpedantic -Wextra -std=c11 -ggdb -Wshadow -fsanitize=address
+CFLAGS = -Wall -Wpedantic -Wextra -std=c99 -ggdb -Wshadow -fsanitize=address
 CINCLUDES =
 CLIBS =
 
