@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
     const char *filename = NULL;
     size_t horiz_pts = HORIZ_PTS_DEFAULT;
     size_t vert_pts = VERT_PTS_DEFAULT;
+    DataAggregate aggregator = DATA_AG_AV;
     while (argc > 0) {
         char *arg = sdm_shift_args(&argc, &argv);
 
@@ -46,6 +47,15 @@ int main(int argc, char *argv[]) {
             }
             vert_pts = strtol(sdm_shift_args(&argc, &argv), NULL, 0);
         }
+        else if (strcmp(arg, "--max") == 0) {
+            aggregator = DATA_AG_MAX;
+        }
+        else if (strcmp(arg, "--min") == 0) {
+            aggregator = DATA_AG_MIN;
+        }
+        else if (strcmp(arg, "--average") == 0) {
+            aggregator = DATA_AG_AV;
+        }
         else {
             filename = arg;
         }
@@ -61,8 +71,8 @@ int main(int argc, char *argv[]) {
     DoubleArray values = {0};
     char *buffer = parse_arch_file(filename, &dt_strings, &values);
 
-    printf("\n\n%s\n\n", filename);
-    plot_hist(values.data, values.length, vert_pts, horiz_pts);
+    printf("\n%s\n", filename);
+    plot_hist(values.data, values.length, vert_pts, horiz_pts, aggregator);
     printf("\n\n");
 
     free(dt_strings.data);
