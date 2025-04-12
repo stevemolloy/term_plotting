@@ -12,7 +12,23 @@
 #define HORIZ_PTS_DEFAULT 200
 
 void usage(const char *programname) {
-    fprintf(stderr, "USAGE:\n%s <filename> [-h <horiz_pts>] [-v <vert_pts>]\n", programname);
+    fprintf(stderr, "USAGE:\n%s <filename> [-x <horiz_pts>] [-y <vert_pts>] [--average|--max|--min]\n", programname);
+}
+
+void help(const char*programname) {
+    fprintf(stdout, "Plot time-series data from a CSV file\n");
+    fprintf(stdout, "Assumes the file is organised so that the first two lines are ignored,\n");
+    fprintf(stdout, "and that the data is in the second column.\n");
+    fprintf(stdout, "\n");
+    usage(programname);
+    fprintf(stdout, "\n");
+    fprintf(stdout, "\"-x\" -- The maximum number of points allowed horizontally. Default = %d\n", HORIZ_PTS_DEFAULT);
+    fprintf(stdout, "        Datasets that exceed this will be aggregated in chunks according to the aggregator function\n");
+    fprintf(stdout, "\"-y\" -- The number of points on the vertical axis. Default = %d\n", VERT_PTS_DEFAULT);
+    fprintf(stdout, "--average|--max|--min -- The aggregator function to use when the number of points exceeds the maximum.\n");
+    fprintf(stdout, "                         --average: plot the average of the chunk. (DEFAULT)\n");
+    fprintf(stdout, "                         --min:  plot the minimum value of each chunk.\n");
+    fprintf(stdout, "                         --max:  plot the maximum value of each chunk.\n");
 }
 
 int main(int argc, char *argv[]) {
@@ -31,17 +47,21 @@ int main(int argc, char *argv[]) {
     while (argc > 0) {
         char *arg = sdm_shift_args(&argc, &argv);
 
-        if (strcmp(arg, "-h")==0) {
+        if (strcmp(arg, "-h") == 0 || strcmp(arg, "--help") == 0) {
+            help(programname);
+            return 0;
+        }
+        else if (strcmp(arg, "-x")==0) {
             if (argc == 0) {
-                fprintf(stderr, "ERROR: An integer value is expected after \"-h\"");
+                fprintf(stderr, "ERROR: An integer value is expected after \"-x\"");
                 usage(programname);
                 return 1;
             }
             horiz_pts = strtol(sdm_shift_args(&argc, &argv), NULL, 0);
         }
-        else if (strcmp(arg, "-v")==0) {
+        else if (strcmp(arg, "-y")==0) {
             if (argc == 0) {
-                fprintf(stderr, "ERROR: An integer value is expected after \"-v\"");
+                fprintf(stderr, "ERROR: An integer value is expected after \"-y\"");
                 usage(programname);
                 return 1;
             }
