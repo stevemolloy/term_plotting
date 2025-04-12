@@ -19,6 +19,10 @@ void plot_hist(double *data, size_t num_pts, size_t y_pts, size_t max_x_pts, Dat
                num_pts, max_x_pts, agg_string(aggregator), window_size);
 
         data_to_plot = malloc(max_x_pts * sizeof(double));
+        if (data_to_plot == NULL) {
+            fprintf(stderr, "ERROR: Out of memory\n");
+            exit(1);
+        }
         for (size_t i=0; i<max_x_pts; i++) {
             if (i*window_size >= num_pts) {
                 max_x_pts = i;
@@ -50,6 +54,10 @@ void plot_hist(double *data, size_t num_pts, size_t y_pts, size_t max_x_pts, Dat
     double step = (max_val - min_val) / (y_pts - 1);
 
     double *lims = malloc((y_pts+1) * sizeof(double));
+    if (lims == NULL) {
+        fprintf(stderr, "ERROR: Out of memory\n");
+        exit(1);
+    }
     double low  = min_val - step/2.0;
     for (size_t i=0; i<y_pts; i++)
         lims[i] = low + i * step;
