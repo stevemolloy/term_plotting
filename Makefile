@@ -10,7 +10,7 @@ SRCS = $(wildcard $(SRC)/*.c)
 OBJS = $(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SRCS))
 
 BINDIR = bin
-BIN = $(BINDIR)/plot_histogram
+BIN = $(BINDIR)/term_plotter
 
 all: $(BIN)
 
