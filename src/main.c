@@ -22,9 +22,9 @@ void help(const char*programname) {
     fprintf(stdout, "\n");
     usage(programname);
     fprintf(stdout, "\n");
-    fprintf(stdout, "\"-x\" -- The maximum number of points allowed horizontally. Default = %d\n", HORIZ_PTS_DEFAULT);
+    fprintf(stdout, "-x -- The maximum number of points allowed horizontally. Default = %d\n", HORIZ_PTS_DEFAULT);
     fprintf(stdout, "        Datasets that exceed this will be aggregated in chunks according to the aggregator function\n");
-    fprintf(stdout, "\"-y\" -- The number of points on the vertical axis. Default = %d\n", VERT_PTS_DEFAULT);
+    fprintf(stdout, "-y -- The number of points on the vertical axis. Default = %d\n", VERT_PTS_DEFAULT);
     fprintf(stdout, "--average|--max|--min -- The aggregator function to use when the number of points exceeds the maximum.\n");
     fprintf(stdout, "                         --average: plot the average of the chunk. (DEFAULT)\n");
     fprintf(stdout, "                         --min:  plot the minimum value of each chunk.\n");
