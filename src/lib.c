@@ -5,7 +5,7 @@
 
 #include "lib.h"
 
-#define GRAPH_MARK 'X'
+#define GRAPH_MARK "⨯"
 
 #define BETWEEN(x, lo, hi) ((hi) > (x) && (x) >= (lo))
 
@@ -67,16 +67,16 @@ void plot_hist(double *data, size_t num_pts, size_t y_pts, size_t max_x_pts, Dat
         if (i==(int)y_pts)
             printf("%+0.2e ^", lims[i]-step/2.0);
         else if (i==1)
-            printf("%+0.2e -", lims[i]-step/2.0);
+            printf("%+0.2e —", lims[i]-step/2.0);
         else
             printf("          |");
 
         for (size_t j=0; j<plot_N; j++) {
             if (BETWEEN(data_to_plot[j], lims[i-1], lims[i]))
-                putchar(GRAPH_MARK);
+                printf(GRAPH_MARK);
             else if (i!=1) putchar(' ');
-            else if (j!=(plot_N-1) )putchar('-');
-            else putchar('>');
+            else if (j!=(plot_N-1) ) printf("—"); //putchar('-');
+            else printf("→");
         }
         putchar('\n');
     }
